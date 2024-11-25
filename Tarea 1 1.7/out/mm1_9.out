@@ -1,0 +1,11 @@
+Single Queue system simulation (Gas station)
+Random exponential numbers with seed: 70
+Mean interrarival: 5.6
+Mean  service: 4.8
+Cars delayed: 500
+
+Average delay in queue for police cars 2.3915 minutes
+Average delay in queue for particular cars 6.1195 minutes
+Average number in queue 1.5153
+Server utilization 0.9426
+Time simulation ended 2467.236405115654 minutes

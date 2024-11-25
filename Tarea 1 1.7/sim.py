@@ -1,8 +1,9 @@
 import numpy as np
 
-class Simulation():
+class Simulation:
 
-    def __init__(self):
+    def __init__(self,i,seed):
+        self.iter=i
         #SYSTEM VARIABLES
         self.BUSY=1
         self.IDLE=0
@@ -12,7 +13,7 @@ class Simulation():
         self.DEPARTURE=3
         self.POLICE_DEPARTURE=4
         self.PARTICULAR_DEPARTURE=5
-        self.generator=np.random.default_rng(30)
+        self.generator=np.random.default_rng(seed)
         #SIMULATION TIME
         self.clock=0
         #STATE VARIABLES
@@ -38,11 +39,13 @@ class Simulation():
             self.mean_interrarival, self.mean_service, self.MAX_CARS_DELAYED = map(float,infile.read().split(" "))
         self.MAX_CARS_DELAYED = int(self.MAX_CARS_DELAYED)
 
-        with open("mm1.out","w") as outfile:
-            outfile.write("Single Queue system simulation (Gas station)\n")
-        outfile=open("mm1.out","a")
-        outfile.writelines(f"Mean interrarival: {self.mean_interrarival}\n Mean  service: {self.mean_service}\n")
-        outfile.writelines(f"Cars delayed: {self.MAX_CARS_DELAYED}")
+        with open(f"./out/mm1_{self.iter}.out","w") as outfile:
+            outfile.writelines("Single Queue system simulation (Gas station)\n")
+        with open(f"./out/mm1_{self.iter}.out","a") as outfile:
+            outfile.writelines(f"Random exponential numbers with seed: {seed}\n")
+            outfile.writelines(f"Mean interrarival: {self.mean_interrarival}\n")
+            outfile.writelines(f"Mean  service: {self.mean_service}\n")
+            outfile.writelines(f"Cars delayed: {self.MAX_CARS_DELAYED}\n\n")
         # ---------------------------------
         #PROGRAM FIRST EVENTS
         self.nextEvents_time[self.POLICE_ARRIVAL] = {"type":self.POLICE_ARRIVAL,"time":15}
@@ -161,23 +164,30 @@ class Simulation():
         average_num_q= self.cars_in_q_area/self.clock
         average_server_occupation=self.server_status_area/self.clock
 
-        print("Single server queueing system Gas station")
-        print(f"Mean interrarrival time {self.mean_interrarival} minutes")
-        print(f"Mean service time {self.mean_service} minutes")
-        print(f"Number of customers {self.cars_attended}\n")
+        # print("Single server queueing system Gas station")
+        # print(f"Mean interrarrival time {self.mean_interrarival} minutes")
+        # print(f"Mean service time {self.mean_service} minutes")
+        # print(f"Number of customers {self.cars_attended}\n")
 
-        print(f"Average delay in queue for police cars {average_delay_police:.4f} minutes")
-        print(f"Average delay in queue for particular cars {average_delay_particular:.4f} minutes")
-        print(f"Average number in queue {average_num_q:.4f}")
-        print(f"Server utilization {average_server_occupation:.4f}")
-        print(f"Time simulation ended {self.clock} minutes")
+        # print(f"Average delay in queue for police cars {average_delay_police:.4f} minutes")
+        # print(f"Average delay in queue for particular cars {average_delay_particular:.4f} minutes")
+        # print(f"Average number in queue {average_num_q:.4f}")
+        # print(f"Server utilization {average_server_occupation:.4f}")
+        # print(f"Time simulation ended {self.clock} minutes")
+
+        with open(f"./out/mm1_{self.iter}.out","a") as outfile:
+            outfile.writelines(f"Average delay in queue for police cars {average_delay_police:.4f} minutes\n")
+            outfile.writelines(f"Average delay in queue for particular cars {average_delay_particular:.4f} minutes\n")
+            outfile.writelines(f"Average number in queue {average_num_q:.4f}\n")
+            outfile.writelines(f"Server utilization {average_server_occupation:.4f}\n")
+            outfile.writelines(f"Time simulation ended {self.clock} minutes\n")
 
         # print("police",self.police_total_delay)
         # print("particular",self.particular_total_delay)
         # print(f"area server status {self.server_status_area}")
         # print(f"area q {self.cars_in_q_area}")
 
-        print()
-
-sim=Simulation()
-sim.main()
+seeds = [30,42,50,35,41,56,62,68,70,71,59]
+for i in range(1,len(seeds)):
+    sim=Simulation(i,seeds[i-1])
+    sim.main()
