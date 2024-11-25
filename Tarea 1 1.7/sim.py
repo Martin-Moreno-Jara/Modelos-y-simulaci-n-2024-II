@@ -12,10 +12,13 @@ class Simulation():
         self.DEPARTURE=3
         self.POLICE_DEPARTURE=4
         self.PARTICULAR_DEPARTURE=5
+        self.generator=np.random.default_rng(30)
         #SIMULATION TIME
         self.clock=0
         #STATE VARIABLES
         self.cars_attended=0
+        self.police_attended=0
+        self.particular_attended=0
         self.cars_in_q=0
         self.server_status=self.IDLE
         self.nextEvent_type=0
@@ -28,6 +31,7 @@ class Simulation():
         self.server_status_area=0
         self.police_delay_area=0
         self.particular_delay_area=0
+        self.cars_in_q_area=0
         # ---------------------------------
         #READ INPUT VARIABLES AND WRITE FIRST OUTPUT
         with open("mm1.in","r") as infile:  
@@ -56,15 +60,11 @@ class Simulation():
             elif self.nextEvent_type["type"]==self.DEPARTURE:
                 self.departure()
             
-           
             self.update_stats()
-        print("police",self.police_total_delay)
-        print("particular",self.particular_total_delay)
         self.generate_report()
         
     def expon(self,mean):
-        generator=np.random.default_rng(30)
-        return generator.exponential(mean)
+        return self.generator.exponential(mean)
 
     def timing(self):
         #print(self.nextEvents_time)
@@ -82,6 +82,7 @@ class Simulation():
             self.police_total_delay+=delay
             self.server_status=self.BUSY
             self.cars_attended+=1
+            self.police_attended+=1
             #programar evento de salida
             time_next=self.clock+30
             departure_police = {"type":self.DEPARTURE,"depart ":self.POLICE_DEPARTURE,"time":time_next}
@@ -104,6 +105,7 @@ class Simulation():
             self.particular_total_delay+=delay
             self.server_status=self.BUSY
             self.cars_attended+=1
+            self.particular_attended+=1
             #programar evento de salida
             time_next=self.clock+self.expon(self.mean_interrarival)
             departure_particular = {"type":self.DEPARTURE,"depart ":self.PARTICULAR_DEPARTURE,"time":time_next}
@@ -131,18 +133,51 @@ class Simulation():
                 self.police_total_delay+=delay
                 next_event= {"type":self.DEPARTURE,"depart ":self.POLICE_DEPARTURE,"time":next_time}
                 self.nextEvent_type[self.DEPARTURE]=next_event
+                self.police_attended+=1
             elif next_car==self.PARTICULAR_DEPARTURE:
                 self.particular_total_delay+=delay
                 next_event= {"type":self.DEPARTURE,"depart ":self.PARTICULAR_DEPARTURE,"time":next_time}
+                self.particular_attended+=1
+            
             #aumentar carros atendidos y quitar de lista
             self.cars_attended+=1
             self.arrivals.pop(1)
 
     def update_stats(self):
-        pass
+        #Calcular tiempo desde último evento y setear timelastEvent
+        time_since_lastEvent=self.clock-self.time_lastEvent
+        self.time_lastEvent=self.clock
+
+        #Actualizar área bajo curvas
+        self.cars_in_q_area+=self.cars_in_q*time_since_lastEvent
+
+        self.server_status_area+=self.server_status*time_since_lastEvent
 
     def generate_report(self):
-        pass
+        #Calculo de promedios
+        average_delay_total = (self.police_total_delay+self.particular_total_delay)/self.cars_attended
+        average_delay_police = self.police_total_delay/self.police_attended
+        average_delay_particular = self.particular_total_delay/self.particular_attended
+        average_num_q= self.cars_in_q_area/self.clock
+        average_server_occupation=self.server_status_area/self.clock
+
+        print("Single server queueing system Gas station")
+        print(f"Mean interrarrival time {self.mean_interrarival} minutes")
+        print(f"Mean service time {self.mean_service} minutes")
+        print(f"Number of customers {self.cars_attended}\n")
+
+        print(f"Average delay in queue for police cars {average_delay_police:.4f} minutes")
+        print(f"Average delay in queue for particular cars {average_delay_particular:.4f} minutes")
+        print(f"Average number in queue {average_num_q:.4f}")
+        print(f"Server utilization {average_server_occupation:.4f}")
+        print(f"Time simulation ended {self.clock} minutes")
+
+        # print("police",self.police_total_delay)
+        # print("particular",self.particular_total_delay)
+        # print(f"area server status {self.server_status_area}")
+        # print(f"area q {self.cars_in_q_area}")
+
+        print()
 
 sim=Simulation()
 sim.main()

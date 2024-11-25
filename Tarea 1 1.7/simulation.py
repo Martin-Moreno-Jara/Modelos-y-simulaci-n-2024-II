@@ -107,7 +107,7 @@ def initialize():
     print("first particular arrival",time_next_event[PARTICULAR_CAR])
 
 def expon(mean):
-    generator=np.random.default_rng(30)
+    generator=np.random.default_rng()
     return generator.exponential(scale=mean)
 
 def timing():
